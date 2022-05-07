@@ -1,0 +1,4 @@
+
+1 º
+	std::vector::insert(pos, count, value)
+	da seg quando o periodo esta fora do range do container, manter?
