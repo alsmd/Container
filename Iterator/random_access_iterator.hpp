@@ -83,6 +83,11 @@ struct random_access_iterator
 	};
 
 
+	reference operator[](difference_type n ) const {
+		return (*(this->_ptr + n));
+	}
+
+
 	private:
 		pointer _ptr;
 };
