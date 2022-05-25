@@ -69,6 +69,21 @@ public:
 		}
 	}
 	
+	void	test_iterator(){
+		this->title("Iterator");
+
+		{
+			std::stringstream buffer;	
+			int size = 5;
+			int array[] = {1, 2, 3, 4, 5};
+			ft::vector<int> ft_list(array, array + 5);
+			for (auto i : array){
+				buffer << i ;
+			}
+			this->name("Iterator vector{1,2,3,4,5} output has to be 12345")
+				->assertEqual(buffer.str(), "12345");
+		}
+	}
 
 
 
