@@ -4,6 +4,7 @@
 #include "../Util/BSTAlgorithm.hpp"
 #include "../Util/BSTUtils.hpp"
 #include "../Iterator/bidirecional_iterator.hpp"
+#include "../Iterator/reverse_iterator.hpp"
 
 namespace ft {
 
@@ -22,6 +23,8 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 		typedef typename Allocator::const_pointer const_pointer;
 		typedef ft::bidirecional_iterator<Key, T>	iterator;
 		typedef const iterator						const_iterator;
+		typedef	ft::reverse_iterator<iterator>				reverse_iterator;
+		typedef	const ft::reverse_iterator<const_iterator>	const_reverse_iterator;
 
 	class value_compare{
 		protected:
@@ -43,7 +46,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	}
 
 	~map(){
-		// this->clear();
+		this->clear();
 	}
 
 	//Iterators
@@ -54,6 +57,34 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 
 	iterator end(){
 		return iterator(this->_node ? ft::getHigherNode(this->_node) : NULL, this->_node ? this->_node->size: 0, true);
+	}
+
+	const_iterator begin()const{
+		return const_iterator(this->_node ? ft::getLowerNode(this->_node) : NULL, this->_node ? this->_node->size: 0);
+	}
+
+	const_iterator end()const{
+		return const_iterator(this->_node ? ft::getHigherNode(this->_node) : NULL, this->_node ? this->_node->size: 0, true);
+	}
+
+	reverse_iterator rbegin() {
+		iterator i = this->end();
+		i--;
+		return reverse_iterator(i);
+	}
+
+	reverse_iterator rend()   {
+		return reverse_iterator((this->end()));
+	}
+
+	const_reverse_iterator rbegin() const{
+		iterator i = this->end();
+		i--;
+		return const_reverse_iterator(i);
+	}
+
+	const_reverse_iterator rend() const {
+		return const_reverse_iterator((this->end()));
 	}
 
 
@@ -264,9 +295,50 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 		return iterator(found, this->_node->size);
 	} */
 
-	/* iterator upper_bound (const key_type& k){
-		
-	} */
+	iterator upper_bound (const key_type& k){
+		iterator begin = this->begin();
+		iterator end = this->end();
+		for (; begin != end; begin++){
+			if ((this->key_comp()(k, begin->first)))
+				break;
+		}
+		return begin;
+	}
+
+	const_iterator upper_bound (const key_type& k) const{
+		const_iterator begin = this->begin();
+		const_iterator end = this->end();
+		for (; begin != end; begin++){
+			if ((this->key_comp()(k, begin->first)))
+				break;
+		}
+		return begin;
+	}
+
+	iterator lower_bound( const Key& k ){
+		iterator begin = this->begin();
+		iterator end = this->end();
+		for (; begin != end; begin++){
+			if (!(this->key_comp()(begin->first, k)))
+				break;
+		}
+		return begin;
+	}
+
+	const_iterator lower_bound( const Key& k ) const{
+		const_iterator begin = this->begin();
+		const_iterator end = this->end();
+		for (; begin != end; begin++){
+			if (!(this->key_comp()(begin->first, k)))
+				break;
+		}
+		return begin;
+	}
+
+	pair<iterator,iterator> equal_range (const key_type& k){
+		return ft::make_pair(lower_bound(k), upper_bound(k));
+	}
+
 
 
 	protected:

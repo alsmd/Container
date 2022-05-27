@@ -13,9 +13,10 @@ template< class Iter > class reverse_iterator{
 
 		reverse_iterator() : _current(){}
 
+		reverse_iterator(reverse_iterator &cpy) : _current(cpy._current){}
 		explicit reverse_iterator(iterator_type current) : _current(current) {}
 
-		template< class U > reverse_iterator( const reverse_iterator<U>& other ) : _current(other.base){}
+		template< class U > reverse_iterator( const reverse_iterator<U>& other ) : _current(other._current){}
 		//Operators
 
 		template< class U > reverse_iterator& operator=( const reverse_iterator<U>& other );
@@ -33,7 +34,7 @@ template< class Iter > class reverse_iterator{
 		}
 
 		pointer operator ->(){
-			return _current;
+			return &(operator*());
 		}
 		
 		reverse_iterator operator+(difference_type n) const {

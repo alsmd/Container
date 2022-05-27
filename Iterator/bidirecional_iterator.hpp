@@ -9,7 +9,7 @@ namespace ft{
 template< typename Key, typename T >
 struct bidirecional_iterator
 {
-    typedef T									value_type;
+    typedef ft::pair<const Key, T>				value_type;
 	typedef std::bidirectional_iterator_tag		iterator_category;
     typedef std::ptrdiff_t						difference_type;
     typedef value_type*							pointer;  // or also value_type*
@@ -19,7 +19,8 @@ struct bidirecional_iterator
 		: _node(node){
 		this->size = size;
 		this->end = end;
-		this->pair = new ft::pair<const Key, T>(this->size, T());
+		this->pair = NULL;
+		// this->pair = new ft::pair<const Key, T>(this->size, T());
 		if (node){
 
 			while (node->parent)
@@ -33,14 +34,14 @@ struct bidirecional_iterator
 
 	bidirecional_iterator()
 		: _node(NULL), _first(NULL), _last(NULL), end(false), size(0){
-		this->pair = new ft::pair<const Key, T>(this->size, T());
+		this->pair = NULL;
 	}
 
 	template< typename k, typename t >
 	bidirecional_iterator(bidirecional_iterator<k,t> &cpy)
 		: _node(cpy._node), size(cpy.size), _first(cpy._first), _last(cpy._last), end(cpy.end)
 	{
-		this->pair = new ft::pair<const k, t>(this->size, t());
+		this->pair = NULL;
 	}
 
 	template<typename k, typename t>
@@ -55,19 +56,27 @@ struct bidirecional_iterator
 	}
 
 	~bidirecional_iterator(){
-		delete this->pair;
+		if (this->pair){
+			delete this->pair;
+			this->pair = NULL;
+		}
 	}
 
 	//Operators
-	ft::pair<const Key, T> *operator *(){
-		if (end)
-			return this->pair;
-		return (this->_node->data);
+	ft::pair<const Key, T> &operator *(){
+		if (end){
+		std::cout << "here\n";
+			this->pair = new ft::pair<const Key, T>(this->size, T());
+			return *this->pair;
+		}
+		return (*this->_node->data);
 	}
 
 	ft::pair<const Key, T> *operator ->(){
-		if (end)
+		if (end){
+			this->pair = new ft::pair<const Key, T>(this->size, T());
 			return this->pair;
+		}
 		return (this->_node->data);
 	}
 
@@ -105,9 +114,15 @@ struct bidirecional_iterator
 		}
 		else if(this->_node->parent && this->_node != this->_last){
 			this->_comingFrom = this->_node->getDirection();
+			const Key key = this->_node->data->first;
 			this->_node = this->_node->parent;
-			if (this->_comingFrom == ft::Direction::Right)
-				this->_node = this->_node->parent;
+			if (this->_comingFrom == ft::Direction::Right){
+				while (this->_node->parent){
+					this->_node = this->_node->parent;
+					if (this->_node->data->first > key)
+						break;
+				}
+			}
 		}else{
 			this->end = true;
 			this->_node = NULL;
@@ -125,14 +140,12 @@ struct bidirecional_iterator
 
 	//prefix decrement
 	bidirecional_iterator &operator--(){
-		if (this->_node == NULL)
-			return *this;
 		if (this->end){
 			this->end = false;
 			this->_node = this->_last;
 		}
 		else if (this->_node == this->_first)
-			this->end = true;
+			return *this;
 		else if (this->_node->left){
 			this->_comingFrom = ft::Direction::Parent;
 			this->_node = ft::getHigherNode(this->_node->left);
