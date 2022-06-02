@@ -30,7 +30,8 @@ template< class Iter > class reverse_iterator{
 
 
 		reference operator *(){
-			return *_current;
+			iterator_type cpy = _current;
+			return *(--cpy);
 		}
 
 		pointer operator ->(){

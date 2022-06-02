@@ -1,10 +1,11 @@
 #pragma once
 #include "../Util/functional.hpp"
 #include "../Util/utility.hpp"
-#include "../Util/BSTAlgorithm.hpp"
-#include "../Util/BSTUtils.hpp"
+// #include "../Util/BSTAlgorithm.hpp"
+// #include "../Util/BSTUtils.hpp"
 #include "../Iterator/bidirecional_iterator.hpp"
 #include "../Iterator/reverse_iterator.hpp"
+#include "../Util/BinarySearchTree.hpp"
 
 namespace ft {
 
@@ -42,59 +43,98 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 		}
 	};
 
-	map() :  _alloc(), _node(NULL){
+	map() :  _alloc(), tree(&this->_alloc){
 	}
 
 	~map(){
-		this->clear();
+		// this->clear();
 	}
 
 	//Iterators
 
 	iterator begin(){
-		return iterator(this->_node ? ft::getLowerNode(this->_node) : NULL, this->_node ? this->_node->size: 0);
+		if (this->tree.root){
+			return iterator(
+				ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root),
+				ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root),
+				ft::BinarySearchTree<Key, T>::getHigherNode(this->tree.root),
+				this->tree.root ? 0 : 0
+			);
+		}
+		return iterator(
+			NULL,
+			NULL,
+			NULL,
+			this->tree.root ? 0 : 0
+		);
 	}
 
 	iterator end(){
-		return iterator(this->_node ? ft::getHigherNode(this->_node) : NULL, this->_node ? this->_node->size: 0, true);
+		if (this->tree.root){
+			return iterator(
+			NULL,
+			ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root),
+			ft::BinarySearchTree<Key, T>::getHigherNode(this->tree.root),
+			this->tree.root ? 0 : 0, true
+			);
+		}
+		return iterator(
+			NULL,
+			NULL,
+			NULL,
+			this->tree.root ? 0 : 0, true
+		);
 	}
 
-	const_iterator begin()const{
-		return const_iterator(this->_node ? ft::getLowerNode(this->_node) : NULL, this->_node ? this->_node->size: 0);
+	const iterator begin()const {
+		if (this->tree.root){
+			return const_iterator(
+				ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root),
+				ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root),
+				ft::BinarySearchTree<Key, T>::getHigherNode(this->tree.root),
+				this->tree.root ? 0 : 0
+			);
+		}
+		return const_iterator(
+			NULL,
+			NULL,
+			NULL,
+			this->tree.root ? 0 : 0
+		);
 	}
 
-	const_iterator end()const{
-		return const_iterator(this->_node ? ft::getHigherNode(this->_node) : NULL, this->_node ? this->_node->size: 0, true);
+	const_iterator end() const{
+		if (this->tree.root){
+			return const_iterator(
+			NULL,
+			ft::BinarySearchTree<Key, T>::getHigherNode(this->tree.root),
+			ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root),
+			this->tree.root ? 0 : 0, true
+			);
+		}
+		return const_iterator(
+			NULL,
+			NULL,
+			NULL,
+			this->tree.root ? 0 : 0, true
+		);
 	}
 
 	reverse_iterator rbegin() {
-		iterator i = this->end();
-		i--;
-		return reverse_iterator(i);
+		return reverse_iterator(this->end());
 	}
 
 	reverse_iterator rend()   {
-		return reverse_iterator((this->end()));
+		return reverse_iterator(this->begin());
 	}
 
 	const_reverse_iterator rbegin() const{
-		iterator i = this->end();
-		i--;
-		return const_reverse_iterator(i);
+		return const_reverse_iterator(this->end());
 	}
 
 	const_reverse_iterator rend() const {
-		return const_reverse_iterator((this->end()));
+		return const_reverse_iterator((this->begin()));
 	}
-
-
-
-	/* reverse_iterator rbegin();
-	const_reverse_iterator rbegin() const;
-
-	reverse_iterator rend();
-	const_reverse_iterator rend() const; */
-
 
 	//Capacity
 	/***
@@ -104,7 +144,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	bool empty() const{
-		return this->_node->size == 0 ? true : false;
+		return this->begin() == this->end() ? true : false;
 	}
 
 	/***
@@ -114,7 +154,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	size_type size() const{
-		return this->_node->size;
+		return this->tree.root->size;
 	}
 
 	/***
@@ -140,7 +180,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	mapped_type& operator[] (const key_type& k){
-		return ft::insertNode(k, &this->_node, &this->_alloc);
+		return this->tree.insert(k);
 	}
 
 
@@ -163,7 +203,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	void erase (iterator position){
-		ft::removeNode(position->first, &this->_node);
+		tree.remove(position->first);
 	}
 
 	/***
@@ -176,7 +216,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	size_type erase (const key_type& k){
-		int res =  ft::removeNode(k, &this->_node) ? 1 : 0;
+		int res =  tree.remove(k) ? 1 : 0;
 		return res;
 	}
 
@@ -193,7 +233,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 		while (first != last){
 			holder = first;
 			first++;
-			ft::removeNode(holder->first, &this->_node);
+			this->tree.remove(holder->first);
 		}
 	}
 
@@ -206,9 +246,9 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	void swap (map& x){
-		ft::BSTNode<Key, T> holder = this->_node;
-		this->_node = x._node;
-		x._node = holder;
+		ft::Node<Key, T> holder = this->tree.root;
+		this->tree.root = x.tree.root;
+		x.tree.root = holder;
 	}
 
 	/***
@@ -222,9 +262,9 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	ft::pair<iterator,bool> insert (const value_type& val){
-		bool created = this->_node->insert(val);
-		ft::BSTNode<Key, T>	*createdNode = this->_node->find(val.first);
-		return ft::pair<iterator, bool>(iterator(createdNode, this->_node->size), created);
+		bool created = this->tree->insert(val);
+		ft::BSTNode<Key, T>	*createdNode = this->tree.root->find(val.first);
+		return ft::pair<iterator, bool>(iterator(createdNode, this->tree.root->size), created);
 	}
 
 	/***
@@ -236,11 +276,11 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * @param position Hint for the position where the element can be inserted.
 	 * @param val Value to be copied to (or moved as) the inserted element.
 	**/
-	iterator insert (iterator position, const value_type& val){
-		this->_node->find(position->_first)->insert(val);
-		ft::BSTNode<Key, T>	*createdNode = this->_node->find(val->first);
-		return iterator(createdNode, this->_node->size);
-	}
+	/* iterator insert (iterator position, const value_type& val){
+		this->tree.root->find(position->_first)->insert(val);
+		ft::BSTNode<Key, T>	*createdNode = this->tree.root->find(val->first);
+		return iterator(createdNode, this->tree.root->size);
+	} */
 
 
 	/***
@@ -253,15 +293,15 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 			Notice that the range includes all the elements between first and last, including the element pointed by first but not the one pointed
 	 * 			 by last.
 	**/
-	template <class InputIterator>
+	/* template <class InputIterator>
 	void insert (InputIterator first, InputIterator last){
 		while (first != last){
-			this->_node->insert(first->first) = first->second;
+			this->tree.root->insert(first->first) = first->second;
 			first++;
 		}
-	}
+	} */
 
-	key_compare key_comp() const{
+	/* key_compare key_comp() const{
 		return key_compare();
 	}
 
@@ -271,31 +311,31 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 
 	allocator_type get_allocator() const{
 		return this->_alloc;
-	}
+	} */
 
 
-	size_type count (const key_type& k) const{
-		return this->_node->find(k) ? 1 : 0;
+	/* size_type count (const key_type& k) const{
+		return this->tree.root->find(k) ? 1 : 0;
 	}
 
 	iterator find (const key_type& k){
-		if (this->_node == NULL)
+		if (this->tree.root == NULL)
 			return this->end();
-		ft::BSTNode<Key, T>	*found = this->_node->find(k);
+		ft::BSTNode<Key, T>	*found = this->tree.root->find(k);
 		if (found == NULL)
 			return this->end();
-		return iterator(found, this->_node->size);
-	}
+		return iterator(found, this->tree.root->size);
+	} */
 	/* const_iterator find (const key_type& k) const{
-		if (this->_node == NULL)
+		if (this->tree.root == NULL)
 			return this->end();
-		ft::BSTNode<Key, T>	*found = this->_node->find(k);
+		ft::BSTNode<Key, T>	*found = this->tree.root->find(k);
 		if (found == NULL)
 			return this->end();
-		return iterator(found, this->_node->size);
+		return iterator(found, this->tree.root->size);
 	} */
 
-	iterator upper_bound (const key_type& k){
+/* 	iterator upper_bound (const key_type& k){
 		iterator begin = this->begin();
 		iterator end = this->end();
 		for (; begin != end; begin++){
@@ -338,11 +378,12 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	pair<iterator,iterator> equal_range (const key_type& k){
 		return ft::make_pair(lower_bound(k), upper_bound(k));
 	}
-
+ */
 
 
 	protected:
-		ft::BSTNode<Key, T>								*_node;
+		// ft::BSTNode<Key, T>								*_node;
+		ft::RedBlackTree<Key, T>						tree;
 		allocator_type									_alloc;//gerenciador de memoria
 
 

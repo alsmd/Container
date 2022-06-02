@@ -6,7 +6,7 @@
 namespace ft{
 
 
-	enum Color{
+	/* enum Color{
 		Black = 0,
 		Red = 1
 	};
@@ -16,7 +16,7 @@ namespace ft{
 		Right,
 		Parent,
 		None
-	};
+	}; */
 
 	template< typename Key, typename T, typename Compare = ft::less<Key>, typename Allocator = std::allocator<ft::pair<const Key, T> > >
 	class BSTNode{
@@ -120,6 +120,15 @@ namespace ft{
 				}
 				this->size += 1;
 				return node;
+			}
+
+
+			BSTNode<Key, T> *getSibling(){
+				if (!this->parent)
+					return NULL;
+				if (this->parent->left != this)
+					return this->parent->left;
+				return this->parent->right;
 			}
 
 			/***

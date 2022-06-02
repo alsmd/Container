@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Util/BSTAlgorithm.hpp"
+// #include "../Util/BSTAlgorithm.hpp"
 
 namespace ft{
 	template<typename Key, typename T>
@@ -37,6 +37,59 @@ namespace ft{
 		return false;
 	}
 
+
+	template<typename Key, typename T>
+	int checkHeight(BSTNode<Key, T> *node){
+		int size = 0;
+
+		while (node){
+			BSTNode<Key, T> *sibling = node->getSibling();
+			if (node->left){
+				node = node->left;
+			}else if (node->right){
+				node = node->right;
+			}else if (sibling && sibling->left){
+				node = sibling->left;
+			}else if (sibling && sibling->right){
+				node = sibling->right;
+			}else{
+				node = NULL;
+			}
+			size++;
+		}
+		return size;
+	}
+	template<typename Key, typename T>
+	void checkBalance(BSTNode<Key, T> *node, BSTNode<Key, T> *new_node, BSTNode<Key, T> **root){
+		if (!node)
+			return ;
+		int difference = checkHeight(node->left) - checkHeight(node->right);
+		if (difference < -1){
+			//direita
+			// if (checkHeight(node->right->right) > checkHeight(node->right->left)){
+			if (new_node->getDirection() == Direction::Right){
+				rotate(node->right, root);
+				return;
+			}else{
+				rotate(new_node, root);
+				rotate(node->right, root);
+				return ;
+			}
+		}
+		if (difference > 1){
+			//esquerda
+			// if (checkHeight(node->left->left) > checkHeight(node->left->right)){
+			if (new_node->getDirection() == Direction::Left){
+				rotate(node->left, root);
+				return ;
+			}else{
+				rotate(new_node, root);
+				rotate(node->right, root);
+				return ;
+			}
+		}
+		checkBalance(node->parent, new_node, root);
+	}
 	template<typename Key, typename T, typename value_type = ft::pair<const Key, T> >
 	bool insertNode(const value_type &value, BSTNode<Key, T> **root, std::allocator<ft::pair<const Key, T> >* alloc){
 		BSTNode<Key, T> *node = new BSTNode<Key, T>(value, alloc);
@@ -50,6 +103,7 @@ namespace ft{
 			delete node;
 			return false;
 		}
+		checkBalance(node, node, root);
 		return true;
 	}
 	template<typename Key, typename T>
@@ -63,7 +117,8 @@ namespace ft{
 		found = (*root)->findSlot(node);
 		if (!node->parent && found != node){
 			delete node;
-		}
+		}else
+			checkBalance(node, node, root);
 		return found->data->second;
 	}
 
@@ -125,6 +180,73 @@ namespace ft{
 			node = node->left;
 		}
 		return node;
+	}
+
+
+
+	/***
+	 * 
+	 * @brief	Rotate node in left orientation.
+	 * 			The node's parent's parent is gonna be node's parent, and
+	 * 			old node's parent is gonna be the node's left child.
+	 * 
+	*/
+	template<typename Key, typename T>
+	void leftRotation(BSTNode<Key, T> *node, BSTNode<Key, T> **root){
+		BSTNode<Key, T> *old_parent = node->parent;
+		old_parent->right = NULL;
+		node->parent = old_parent->parent;
+		if (old_parent->parent && old_parent->getDirection() == Direction::Left)
+			node->parent->left = node;
+		else if (old_parent->parent)
+			node->parent->right = node;
+		old_parent->parent = node;
+		BSTNode<Key, T> *sub_tree;
+		sub_tree = node->left;
+		node->left = old_parent;
+		mergeTrees(sub_tree, &node->left);
+		if (old_parent == *root)
+			*root = node;
+	}
+	/***
+	 * 
+	 * @brief	Rotate node in right orientation.
+	 * 			The node's parent's parent is gonna be node's parent, and
+	 * 			old node's parent is gonna be the node's right child.
+	 * 
+	*/
+	template<typename Key, typename T>
+	void rightRotation(BSTNode<Key, T> *node, BSTNode<Key, T> **root){
+		BSTNode<Key, T> *old_parent = node->parent;
+		old_parent->left = NULL;
+		node->parent = old_parent->parent;
+		if (old_parent->parent && old_parent->getDirection() == Direction::Left)
+			node->parent->left = node;
+		else if (old_parent->parent)
+			node->parent->right = node;
+		old_parent->parent = node;
+		BSTNode<Key, T> *sub_tree;
+		sub_tree = node->right;
+		node->right = old_parent;
+		mergeTrees(sub_tree, &node->right);
+		if (old_parent == *root)
+			*root = node;
+		
+	}
+	template<typename Key, typename T>
+	void rotate(BSTNode<Key, T> *node, BSTNode<Key, T> **root){
+		if (node->getDirection() == Direction::Right)
+			ft::leftRotation(node, root);
+		else
+			ft::rightRotation(node, root);
+	}
+	template<typename Key, typename T>
+	void mergeTrees(BSTNode<Key, T> *node, BSTNode<Key, T> **root){
+		if (!node)
+			return ;
+		(*root)->findSlot(node);
+		mergeTrees(node->left, root);
+		mergeTrees(node->right, root);
 	}
 
 }

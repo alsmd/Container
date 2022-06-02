@@ -1,7 +1,8 @@
 #pragma once
 // #include "iterator_traits.hpp"
-#include "../Util/BSTAlgorithm.hpp"
-#include "../Util/BSTUtils.hpp"
+// #include "../Util/BSTAlgorithm.hpp"
+#include "../Util/BinarySearchTree.hpp"
+// #include "../Util/BSTUtils.hpp"
 namespace ft{
 	
 
@@ -15,19 +16,13 @@ struct bidirecional_iterator
     typedef value_type*							pointer;  // or also value_type*
     typedef value_type&							reference;  // or also value_type&
 
-	bidirecional_iterator(ft::BSTNode<Key, T> *node, int size, bool end = false)
+	bidirecional_iterator(ft::Node<Key, T> *node, ft::Node<Key, T> *first, ft::Node<Key, T> *last, int size, bool end = false)
 		: _node(node){
 		this->size = size;
 		this->end = end;
 		this->pair = NULL;
-		// this->pair = new ft::pair<const Key, T>(this->size, T());
-		if (node){
-
-			while (node->parent)
-				node = node->parent;
-			this->_first = ft::getLowerNode(node);
-			this->_last = ft::getHigherNode(node);
-		}
+		this->_first = first;
+		this->_last = last;
 		if (this->end)
 			this->_node = NULL;
 	}
@@ -64,21 +59,13 @@ struct bidirecional_iterator
 
 	//Operators
 	ft::pair<const Key, T> &operator *(){
-		if (end){
-		std::cout << "here\n";
-			this->pair = new ft::pair<const Key, T>(this->size, T());
-			return *this->pair;
-		}
-		return (*this->_node->data);
+		return (*this->_node->value);
 	}
 
 	ft::pair<const Key, T> *operator ->(){
-		if (end){
-			this->pair = new ft::pair<const Key, T>(this->size, T());
-			return this->pair;
-		}
-		return (this->_node->data);
+		return (this->_node->value);
 	}
+
 
 	/* bidirecional_iterator operator+(difference_type n) const {
 		return bidirecional_iterator(this->_ptr + n);
@@ -110,16 +97,16 @@ struct bidirecional_iterator
 			this->_node = this->_last;
 		}
 		else if (this->_node->right){
-			this->_node = ft::getLowerNode(this->_node->right);
+			this->_node = ft::BinarySearchTree<Key, T>::getLowerNode(this->_node->right);
 		}
 		else if(this->_node->parent && this->_node != this->_last){
-			this->_comingFrom = this->_node->getDirection();
-			const Key key = this->_node->data->first;
+			this->_comingFrom = ft::BinarySearchTree<Key, T>::getDirection(this->_node);
+			const Key key = this->_node->value->first;
 			this->_node = this->_node->parent;
 			if (this->_comingFrom == ft::Direction::Right){
 				while (this->_node->parent){
 					this->_node = this->_node->parent;
-					if (this->_node->data->first > key)
+					if (this->_node->value->first > key)
 						break;
 				}
 			}
@@ -132,7 +119,7 @@ struct bidirecional_iterator
 
 	//Postfix
 	bidirecional_iterator operator++(int) {
-		bidirecional_iterator it(this->_node, this->size);
+		bidirecional_iterator it(this->_node, this->_first, this->_last,this->size);
 		++(*this);
 		return (it);
 	}
@@ -143,20 +130,28 @@ struct bidirecional_iterator
 		if (this->end){
 			this->end = false;
 			this->_node = this->_last;
+			std::cout << this->_last->value->first << "\n";
 		}
-		else if (this->_node == this->_first)
-			return *this;
-		else if (this->_node->left){
+		else if (this->_node == this->_first){
+			this->end = false;
+			this->_node = this->_last;
+		}
+		else if (this->_node != this->_first && this->_node->left){
 			this->_comingFrom = ft::Direction::Parent;
-			this->_node = ft::getHigherNode(this->_node->left);
+			this->_node = ft::BinarySearchTree<Key, T>::getHigherNode(this->_node->left);
 		}
 		else if(this->_node->parent){
-			this->_comingFrom = this->_node->getDirection();
+			this->_comingFrom = ft::BinarySearchTree<Key, T>::getDirection(this->_node);
+			Key key = this->_node->value->first;
 			this->_node = this->_node->parent;
 			if (this->_comingFrom == ft::Direction::Left){
-				while (this->_node->parent)
+				while (this->_node->parent && this->_node->value->first > key){
 					this->_node = this->_node->parent;
+				}
 			}
+		}else{
+			this->end = true;
+			this->_node = NULL;
 		}
 		return *this;
 	}
@@ -183,11 +178,11 @@ struct bidirecional_iterator
  */
 
 	private:
-		ft::BSTNode<Key, T>	*_node;
-		ft::BSTNode<Key, T>	*_first;
-		ft::BSTNode<Key, T>	*_last;
+		ft::Node<Key, T>	*_node;
+		ft::Node<Key, T>	*_first;
+		ft::Node<Key, T>	*_last;
 		ft::Direction		_comingFrom;
-		int					size;
+		size_t				size;
 		bool				end;
 		ft::pair<const Key, T>  *pair;
 
