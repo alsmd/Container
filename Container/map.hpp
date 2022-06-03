@@ -6,6 +6,7 @@
 #include "../Iterator/bidirecional_iterator.hpp"
 #include "../Iterator/reverse_iterator.hpp"
 #include "../Util/BinarySearchTree.hpp"
+#include "./vector.hpp"
 
 namespace ft {
 
@@ -229,11 +230,15 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	void erase (iterator first, iterator last){
+		ft::vector<Key>	keys;
 		iterator holder;
 		while (first != last){
-			holder = first;
+			keys.push_back(first->first);
 			first++;
-			this->tree.remove(holder->first);
+		}
+		while (!keys.empty()){
+			this->tree.remove(keys.back());
+			keys.pop_back();
 		}
 	}
 
@@ -263,7 +268,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	**/
 	ft::pair<iterator,bool> insert (const value_type& val){
 		bool created = this->tree->insert(val);
-		ft::BSTNode<Key, T>	*createdNode = this->tree.root->find(val.first);
+		ft::Node<Key, T>	*createdNode = this->tree.root->find(val.first);
 		return ft::pair<iterator, bool>(iterator(createdNode, this->tree.root->size), created);
 	}
 
@@ -276,11 +281,11 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * @param position Hint for the position where the element can be inserted.
 	 * @param val Value to be copied to (or moved as) the inserted element.
 	**/
-	/* iterator insert (iterator position, const value_type& val){
+	iterator insert (iterator position, const value_type& val){
 		this->tree.root->find(position->_first)->insert(val);
-		ft::BSTNode<Key, T>	*createdNode = this->tree.root->find(val->first);
+		ft::Node<Key, T>	*createdNode = this->tree.root->find(val->first);
 		return iterator(createdNode, this->tree.root->size);
-	} */
+	}
 
 
 	/***
@@ -293,15 +298,15 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 			Notice that the range includes all the elements between first and last, including the element pointed by first but not the one pointed
 	 * 			 by last.
 	**/
-	/* template <class InputIterator>
+	template <class InputIterator>
 	void insert (InputIterator first, InputIterator last){
 		while (first != last){
 			this->tree.root->insert(first->first) = first->second;
 			first++;
 		}
-	} */
+	}
 
-	/* key_compare key_comp() const{
+	key_compare key_comp() const{
 		return key_compare();
 	}
 
@@ -311,31 +316,31 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 
 	allocator_type get_allocator() const{
 		return this->_alloc;
-	} */
+	}
 
 
-	/* size_type count (const key_type& k) const{
+	size_type count (const key_type& k) const{
 		return this->tree.root->find(k) ? 1 : 0;
 	}
 
 	iterator find (const key_type& k){
 		if (this->tree.root == NULL)
 			return this->end();
-		ft::BSTNode<Key, T>	*found = this->tree.root->find(k);
+		ft::Node<Key, T>	*found = this->tree.root->find(k);
 		if (found == NULL)
 			return this->end();
 		return iterator(found, this->tree.root->size);
-	} */
-	/* const_iterator find (const key_type& k) const{
+	}
+	const_iterator find (const key_type& k) const{
 		if (this->tree.root == NULL)
 			return this->end();
-		ft::BSTNode<Key, T>	*found = this->tree.root->find(k);
+		ft::Node<Key, T>	*found = this->tree.root->find(k);
 		if (found == NULL)
 			return this->end();
 		return iterator(found, this->tree.root->size);
-	} */
+	}
 
-/* 	iterator upper_bound (const key_type& k){
+	iterator upper_bound (const key_type& k){
 		iterator begin = this->begin();
 		iterator end = this->end();
 		for (; begin != end; begin++){
@@ -378,11 +383,11 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	pair<iterator,iterator> equal_range (const key_type& k){
 		return ft::make_pair(lower_bound(k), upper_bound(k));
 	}
- */
+
 
 
 	protected:
-		// ft::BSTNode<Key, T>								*_node;
+		// ft::Node<Key, T>								*_node;
 		ft::RedBlackTree<Key, T>						tree;
 		allocator_type									_alloc;//gerenciador de memoria
 
