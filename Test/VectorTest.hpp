@@ -30,8 +30,8 @@ public:
 		}
 	}
 
-	void	test_assign(){
-		this->title("Constructor/Assign Operators");
+	void	test_constroctor(){
+		this->title("Constructor and Equal ");
 
 		{
 			ft::vector<int>	ft_list;
@@ -73,18 +73,30 @@ public:
 		this->title("Iterator");
 
 		{
-			std::stringstream buffer;	
+			std::stringstream ft_buffer;	
+			std::stringstream std_buffer;	
 			int size = 5;
 			int array[] = {1, 2, 3, 4, 5};
 			ft::vector<int> ft_list(array, array + 5);
-			for (auto i : array){
-				buffer << i ;
+			for (auto i : ft_list){
+				ft_buffer << i ;
+			}
+			std::vector<int> std_list(array, array + 5);
+			for (auto i : std_list){
+				std_buffer << i ;
 			}
 			this->name("Iterator vector{1,2,3,4,5} output has to be 12345")
-				->assertEqual(buffer.str(), "12345");
+				->assertEqual(ft_buffer.str(), std_buffer.str());
+		}
+		{
+			int size = 3;
+			char *array[] = {"flavio", "banana", "maça"};
+			ft::vector<std::string> ft_list(array, array + size);
+			std::vector<std::string> std_list(array, array + size);
+			this->name("Iterator vector{'flavio','banana','maça'} output has to be flaviobananamaça")
+				->assertEqual(getContent(ft_list), getContent(std_list));
 		}
 	}
-
 
 
 	void	test_resize(){
@@ -171,16 +183,6 @@ public:
 			this->name("List with elements must return false")->assertEqual(ft_list.empty(), false);
 		}
 	}
-
-	void test_clear(){
-		this->title("Clear");
-		{
-			ft::vector<int> ft_list(30, 2);
-			ft_list.clear();
-			this->name("List with elements after clear size must be 0")->assertEqual(ft_list.size(), 0);
-		}
-	}
-
 	void test_reverse_iterator(){
 		this->title("Reverse Iterator");
 		{
@@ -242,7 +244,338 @@ public:
 		}
 	}
 
-	std::string	getContent(ft::vector<int> list){
+
+	void test_operator_keys(){
+		this->title("Operator []");
+		{
+			char *array[] = {"flavio", "banana", "maça"};
+			int	size = 3;
+			ft::vector<std::string> ft_list(array, array + size);
+			this->name("Vector {'flavio', 'banana', 'maça'} [2] must return maça")
+				->assertEqual(ft_list[2], "maça");
+		}
+
+		{
+			int array[] = {1, 55, 2};
+			int	size = 3;
+			ft::vector<int> ft_list(array, array + size);
+			this->name("Vector {1, 55, 2} [0] must return 1")
+				->assertEqual(ft_list[0], 1);
+		}
+	}
+
+
+	void test_at(){
+		this->title("At");
+		{
+			char *array[] = {"flavio", "banana", "maça"};
+			int	size = 3;
+			ft::vector<std::string> ft_list(array, array + size);
+			this->name("Vector {'flavio', 'banana', 'maça'} [2] must return maça")
+				->assertEqual(ft_list.at(2), "maça");
+		}
+
+		{
+			int array[] = {1, 55, 2};
+			int	size = 3;
+			ft::vector<int> ft_list(array, array + size);
+			this->name("Vector {1, 55, 2} at(0) must return 1")
+				->assertEqual(ft_list.at(0), 1);
+		}
+	}
+
+
+	void test_front(){
+		this->title("Front");
+		{
+			int array[] = {1, 55, 2};
+			int	size = 3;
+			ft::vector<int> ft_list(array, array + size);
+			this->name("Vector {1, 55, 2} front must return 1")
+				->assertEqual(ft_list.front(), 1);
+		}
+	}
+
+	void test_back(){
+		this->title("Back");
+		{
+			int array[] = {1, 55, 2};
+			int	size = 3;
+			ft::vector<int> ft_list(array, array + size);
+			this->name("Vector {1, 55, 2} back must return 2")
+				->assertEqual(ft_list.back(), 2);
+		}
+	}
+
+	void test_data(){
+		this->title("Data");
+		{
+			int array[] = {1, 55, 2};
+			int	size = 3;
+			ft::vector<int> ft_list(array, array + size);
+			this->name("Vector {1, 55, 2} data must return &begin")
+				->assertEqual(ft_list.data(), &(*ft_list.begin()));
+		}
+	}
+
+	void test_assign(){
+		this->title("Assign");
+		{
+			int array[] = {1, 55, 2};
+			int	size = 3;
+			ft::vector<int> ft_list(array, array + size);
+			std::vector<int> std_list(array, array + size);
+			ft_list.assign(55, -157);
+			std_list.assign(55, -157);
+			this->name("test assign(55, -157), content has to be the same as the original")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+
+		{
+			int array[] = {1, 55, 2};
+			int array2[] = {157, 123, 12309 , 123,0 ,1023,01 ,3012,300124, 123};
+			int	size = 3;
+			int	size2 = 10;
+			ft::vector<int> ft_list(array, array + size);
+			std::vector<int> std_list(array, array + size);
+			ft_list.assign(array2, array2 + 10);
+			std_list.assign(array2, array2 + 10);
+			this->name("test assign(iterator, iterator), content has to be the same as the original")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+	}
+
+
+	void test_push_back(){
+		this->title("Push Back");
+		{
+			ft::vector<std::string> ft_list;
+			std::vector<std::string> std_list;
+			ft_list.push_back("ola");
+			ft_list.push_back("flavio");
+			ft_list.push_back("como");
+			ft_list.push_back("estais");
+			ft_list.push_back("portugal");
+			ft_list.push_back("espanha");
+			ft_list.push_back("amarecia");
+			ft_list.push_back("super");
+			ft_list.push_back("the");
+			ft_list.push_back("boys");
+			std_list.push_back("ola");
+			std_list.push_back("flavio");
+			std_list.push_back("como");
+			std_list.push_back("estais");
+			std_list.push_back("portugal");
+			std_list.push_back("espanha");
+			std_list.push_back("amarecia");
+			std_list.push_back("super");
+			std_list.push_back("the");
+			std_list.push_back("boys");
+			this->name("push_back function has to be similar to original")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+	}
+
+	void test_pop_back(){
+		this->title("Pop Back");
+		{
+			ft::vector<int> ft_list;
+			std::vector<int> std_list;
+			for (int i =0; i < 100; i++){
+				ft_list.push_back(i * 32);
+				std_list.push_back(i * 32);
+			}
+			for (int i =0; i < 5; i++){
+				ft_list.pop_back();
+				std_list.pop_back();
+			}
+			this->name("pop_back function has to be similar to original")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+	}
+
+
+	void test_insert(){
+		this->title("Insert");
+		//insert(iterator, value)
+		{
+			ft::vector<int> ft_list(2, -1);
+			std::vector<int> std_list(2, -1);
+			ft_list.insert(ft_list.begin(), -144);
+			std_list.insert(std_list.begin(), -144);
+			this->name("insert(iterator, value) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		{
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.begin() + 2, -192);
+			std_list.insert(std_list.begin() + 2, -192);
+			this->name("insert(iterator, value) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		{
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.end(), -192);
+			std_list.insert(std_list.end(), -192);
+			this->name("insert(iterator, value) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		//insert(iterator, count, value)
+		{
+			ft::vector<int> ft_list(2, -1);
+			std::vector<int> std_list(2, -1);
+			ft_list.insert(ft_list.begin(), 22, -144);
+			std_list.insert(std_list.begin(), 22, -144);
+			this->name("insert(iterator, count, value) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		{
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.begin() + 2, 66, -192);
+			std_list.insert(std_list.begin() + 2, 66, -192);
+			this->name("insert(iterator, count,value) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		{
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.end(), 11, -192);
+			std_list.insert(std_list.end(), 11,-192);
+			this->name("insert(iterator, count, value) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		//insert(pos, first, end)
+		{
+			int array[] = {157, 123, 12309 , 123,0 ,1023,01 ,3012,300124, 123};
+			int size = 10;
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.begin(), array,array + size);
+			std_list.insert(std_list.begin(), array,array + size);
+			this->name("insert(pos, first, end) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+
+		{
+			int array[] = {157, 123, 12309 , 123,0 ,1023,01 ,3012,300124, 123};
+			int size = 10;
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.end(), array,array + size);
+			std_list.insert(std_list.end(), array,array + size);
+			this->name("insert(pos, first, end) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+
+		{
+			int array[] = {157, 123, 12309 , 123,0 ,1023,01 ,3012,300124, 123};
+			int size = 10;
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.insert(ft_list.begin() + 3, array,array + size);
+			std_list.insert(std_list.begin() + 3, array,array + size);
+			this->name("insert(pos, first, end) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+	}
+
+	void test_erase(){
+		this->title("Erase");
+		{
+			ft::vector<int> ft_list(5, -1);
+			std::vector<int> std_list(5, -1);
+			ft_list.erase(ft_list.begin());
+			std_list.erase(std_list.begin());
+			this->name("erase(pos) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		{
+			ft::vector<int> ft_list(100, -1);
+			std::vector<int> std_list(100, -1);
+			ft_list.erase(ft_list.begin() + 50);
+			std_list.erase(std_list.begin() + 50);
+			this->name("erase(pos) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+		{
+			ft::vector<int> ft_list(100, -1);
+			std::vector<int> std_list(100, -1);
+			ft_list.erase(ft_list.begin(), ft_list.end());
+			std_list.erase(std_list.begin(), std_list.end());
+			this->name("erase(iterator, iterator) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+
+		{
+			ft::vector<int> ft_list(100, -1);
+			std::vector<int> std_list(100, -1);
+			ft_list.erase(ft_list.begin(), ft_list.begin() + 25);
+			std_list.erase(std_list.begin(), std_list.begin() + 25);
+			this->name("erase(iterator, iterator) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+
+		{
+			ft::vector<int> ft_list(100, -1);
+			std::vector<int> std_list(100, -1);
+			ft_list.erase(ft_list.begin() + 25, ft_list.begin() + 50);
+			std_list.erase(std_list.begin() + 25, std_list.begin() + 50);
+			this->name("erase(iterator, iterator) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+		}
+	}
+
+	void test_swap(){
+		this->title("Swap");
+		{
+			int array[] = {157, 123, 12309 , 123,0 ,1023,01 ,3012,300124, 123};
+			int size = 10;
+			ft::vector<int> ft_list(5, -1);
+			ft::vector<int> ft_list2(array, array + size);
+			std::vector<int> std_list(5, -1);
+			std::vector<int> std_list2(array, array + size);
+
+			ft_list.swap(ft_list2);
+			std_list.swap(std_list2);
+			this->name("swap(&vector) has to be similar to std function")
+				->assertEqual(getContent(ft_list), getContent(std_list));
+			this->name("swap(&vector) has to be similar to std function")
+				->assertEqual(getContent(ft_list2), getContent(std_list2));
+		}
+	}
+
+
+	void test_clear(){
+		this->title("Clear");
+		{
+			ft::vector<int> ft_list(5, -1);
+
+			ft_list.clear();
+			this->name("clear must empty all elements")
+				->assertEqual(getContent(ft_list), "");
+		}
+		{
+			ft::vector<int> ft_list(5, -1);
+
+			ft_list.clear();
+			this->name("clear must 'set' size to 0")
+				->assertEqual(ft_list.size(), 0);
+		}
+	}
+	template<typename T>
+	std::string	getContent(ft::vector<T> list){
+		std::stringstream	s;
+
+		for (auto i : list)
+			s << i;
+		return (s.str());
+	}
+
+	template<typename T>
+	std::string	getContent(std::vector<T> list){
 		std::stringstream	s;
 
 		for (auto i : list)

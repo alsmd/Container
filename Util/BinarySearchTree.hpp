@@ -24,7 +24,7 @@ struct Node{
 	Node<Key, T>					*right;
 };
 
-template< typename Key, typename T, typename Allocator = std::allocator<ft::pair<const Key, T> > >
+template< typename Key, typename T, typename Allocator = std::allocator<ft::pair<const Key, T> >, typename Compare = ft::less<Key> >
 class BinarySearchTree{
 
 	protected:
@@ -102,14 +102,14 @@ class BinarySearchTree{
 			while (true){
 				if (node->value->first == init->value->first)
 					return init;
-				if (node->value->first < init->value->first){//LEFT
+				else if (Compare(node->value->first, init->value->first)){//LEFT
 					if (init->left == NULL){
 						node->parent = init;
 						init->left = node;
 						break;
 					}else
 						init = init->left;
-				}else if (node->value->first > init->value->first)//RIGHT
+				}else if (!Compare(node->value->first, init->value->first))//RIGHT
 				{
 					if (init->right == NULL){
 						node->parent = init;
@@ -461,57 +461,42 @@ class RedBlackTree : public BinarySearchTree<Key, T>{
 		Node<Key, T> *sibling = getSibling(node);
 		
 		//Caso 3
+		// if DB's sibling is black, and both its children are black
 		if (isBlack(sibling) && isBlack(sibling->left) && isBlack(sibling->right)){
 			sibling->color = Color::Red;
 			if (node->parent->color == Color::Red){
-				node->parent->color == Color::Black;
+				node->parent->color = Color::Black;
 			}
 			else
 				repassBlack(node->parent);
 		}
 		//Caso 4
+		// Db's sibling is red
 		else if (isRed(sibling)){
+			ft::Color holder = sibling->color;
 			sibling->color = node->parent->color;
-			sibling->parent->color = Color::Red;
+			sibling->parent->color = holder;
 			rotate(sibling);
 			repassBlack(node);
 		}
 
 		//Caso 5
+		//Db's sibling is black, sibling's child who is far from db is black, but near child to Db is red
 		else if (isBlack(sibling) && isBlack(getChild(sibling, opositeDirection(BinarySearchTree<Key, T>::getDirection(node)))) && isRed(getChild(sibling, BinarySearchTree<Key, T>::getDirection(node)))){
 			getChild(sibling, BinarySearchTree<Key, T>::getDirection(node))->color = Color::Black;
 			sibling->color = Color::Red;
 			rotate(getChild(sibling, BinarySearchTree<Key, T>::getDirection(node)));
 			repassBlack(node);
 		}
+		// 6 esta certo
 		// Caso 6
+		//Db's sibling is black and far child is red
 		else if (isBlack(sibling) && isRed(getChild(sibling, opositeDirection(BinarySearchTree<Key, T>::getDirection(node))))){
 			sibling->color = node->parent->color;
 			node->parent->color = Color::Black;
 			getChild(sibling, opositeDirection(BinarySearchTree<Key, T>::getDirection(node)))->color = Color::Black;
 			rotate(sibling);
 		}
-		/* else  if (isBlack(sibling)){
-			if (getChild(sibling, opositeDirection(getDirection(node)))->color == Color::Black && getChild(sibling, getDirection(node))->color == Color::Red){
-				getChild(sibling, getDirection(node))->color = Color::Black;
-				sibling->color = Color::Red;
-				rotate(getChild(sibling, getDirection(node)));
-				repassBlack(node);
-			}
-		} else if (isBlack(sibling)){
-			if (getChild(sibling, getDirection(node))->color == Color::Black && getChild(sibling, opositeDirection(getDirection(node)))->color == Color::Red){
-				Color holder = node->parent->color;
-				node->parent->color = sibling->color;
-				sibling->color = holder;
-				getChild(sibling, opositeDirection(getDirection(node)))->color = Color::Black;
-				rotate(sibling);
-			}
-		}else if (isRed(sibling)){
-			sibling->color = Color::Black;
-			sibling->parent->color = Color::Red;
-			rotate(sibling);
-			repassBlack(node);
-		} */
 	}
 
 	/***
@@ -525,20 +510,29 @@ class RedBlackTree : public BinarySearchTree<Key, T>{
 				this->repassBlack(node);
 			}
 			this->swapNode(node, NULL);
+			this->_alloc->destroy(node->value);
+			this->_alloc->deallocate(node->value, 1);
+			node->value = 0;
 			delete node;
 		}
 		else if (node->left && node->right){
 			Node<Key, T> *higher_node = this->getHigherNode(node->left);
+			value_type *holder = node->value;
 			node->value = higher_node->value;
+			higher_node->value = holder;
 			deleteNode(higher_node);
 
 		}else if (node->left || node->right){// tem um filho
 			if (node->left){
+				value_type *holder = node->value;
 				node->value = node->left->value;
+				node->left->value = holder;
 				deleteNode(node->left);
 			}
 			else{
+				value_type *holder = node->value;
 				node->value = node->right->value;
+				node->right->value = holder;
 				deleteNode(node->right);
 			}
 		}

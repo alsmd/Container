@@ -284,7 +284,8 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	iterator insert (iterator position, const value_type& val){
 		this->tree.root->find(position->_first)->insert(val);
 		ft::Node<Key, T>	*createdNode = this->tree.root->find(val->first);
-		return iterator(createdNode, this->tree.root->size);
+		return iterator(createdNode,ft::BinarySearchTree<Key, T>::getHigherNode(this->tree.root),
+			ft::BinarySearchTree<Key, T>::getLowerNode(this->tree.root), ,this->tree.root->size);
 	}
 
 

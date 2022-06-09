@@ -461,6 +461,21 @@ public:
 		i--;
 		return *(i);
 	}
+
+	/***
+	 * 
+	 * @brief		Returns pointer to the underlying array serving as element storage. The pointer is such that range [data(); data() + size()) is always a valid range, even if the container is empty (data() is not dereferenceable in that case).
+	 * @return		Pointer to the underlying element storage. For non-empty containers, the returned pointer compares equal to the address of the first element.
+	 * @link 		https://en.cppreference.com/w/cpp/container/vector/data
+	 * 
+	**/
+	T* data(){
+		return this->_data;
+	}
+
+	const T* data() const{
+		return this->_data;
+	}
 	/***
 	 * 
 	 * @brief		Returns a reference to the last element in the vector.
@@ -500,7 +515,8 @@ public:
 	 * 
 	**/
 	template< class InputIt >
-	void assign( InputIt first, InputIt last )
+	void assign( InputIt first, typename ft::enable_if<!ft::is_integral<InputIt>::value, InputIt>::type
+ last )
 	{
 		this->clear();
 		this->insert(this->begin(), first, last);
@@ -554,12 +570,9 @@ public:
 	iterator insert( iterator pos, const T& value ){
 		size_type	position = &(*pos) - this->_data; // index of pos inside array container
 		this->reserve(this->size() + 1);
-		if (position > this->size()){
-			std::cout << "exception position alem do container\n";
-			return (this->_data + position);
-		}
 		for (size_type s = this->size(); s > position; s--)
 			this->_alloc.construct(this->_data + s, *(this->_data + s - 1));
+		this->_alloc.construct(this->_data + position, value);
 		this->_index++;
 		return (this->_data + position);
 	}
@@ -581,10 +594,6 @@ public:
 		size_type	position = &(*pos) - this->_data; // index of pos inside array container
 
 		this->reserve(this->size() + count);
-		if (position > this->size()){
-			std::cout << "exception position alem do container\n";
-			return ;
-		}
 		for (size_type i = 0; i < count; i++)
 		{
 			for (size_type s = this->size(); s > position; s--)
@@ -614,16 +623,12 @@ public:
 		size_type numberOfNewElements = std::abs(&(*last) - &(*first));
 		size_type	insertPosition = &(*pos) - this->_data; // index of pos inside array container
 		this->reserve(this->size() + numberOfNewElements);
-		if (insertPosition > this->size()){
-			std::cout << "exception insertPosition alem do container\n";
-			return ;
-		}
 		for (size_type i = 0; i < numberOfNewElements; i++)
 		{
-			for (size_type s = this->size(); s > insertPosition; s--)
+			for (size_type s = this->size(); s > insertPosition + i; s--)
 				this->_alloc.construct(this->_data + s, *(this->_data + s - 1));
 			this->_index++;
-			this->_alloc.construct(this->_data + insertPosition, *first);
+			this->_alloc.construct(this->_data + insertPosition + i, *first);
 			first++;
 		}
 	}
@@ -643,7 +648,7 @@ public:
 	{
 		iterator next = pos + 1;
 		size_type index = &(*pos) - this->_data;
-		this->_alloc.destroy(this->data + index);
+		this->_alloc.destroy(this->_data + index);
 		for (; index < this->size() - 1; index++)
 		{
 			this->_alloc.construct(this->_data + index, *(this->_data + index + 1));
@@ -664,12 +669,6 @@ public:
 	**/
 	iterator erase( iterator first, iterator last )
 	{
-		for (; first != last; first++)
-		{
-			this->_alloc.destroy(&(*first));
-			this->_index--;
-		}
-		this->_alloc.destroy(&(*first));
 		size_type index = &(*first) - this->_data;
 		size_type end = &(*last) - this->_data + 1;
 		while (end < this->size() - 1)
@@ -678,6 +677,12 @@ public:
 			index++;
 			end++;
 		}
+		for (; first != last; first++)
+		{
+			this->_alloc.destroy(&(*first));
+			this->_index--;
+		}
+		this->_alloc.destroy(&(*first));
 		return (iterator(this->_index - 1));
 	}
 
