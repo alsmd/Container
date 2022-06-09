@@ -565,6 +565,7 @@ public:
 				->assertEqual(ft_list.size(), 0);
 		}
 	}
+	
 	template<typename T>
 	std::string	getContent(ft::vector<T> list){
 		std::stringstream	s;

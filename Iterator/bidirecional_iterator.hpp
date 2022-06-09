@@ -130,7 +130,6 @@ struct bidirecional_iterator
 		if (this->end){
 			this->end = false;
 			this->_node = this->_last;
-			std::cout << this->_last->value->first << "\n";
 		}
 		else if (this->_node == this->_first){
 			this->end = false;

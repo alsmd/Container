@@ -48,7 +48,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	}
 
 	~map(){
-		this->clear();
+		// this->clear();
 	}
 
 	//Iterators
@@ -230,11 +230,15 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	 * 
 	**/
 	void erase (iterator first, iterator last){
+		ft::vector<Key>	keys;
 		iterator holder;
 		while (first != last){
-			holder = first;
+			keys.push_back(first->first);
 			first++;
-			this->tree.remove(holder->first);
+		}
+		while (!keys.empty()){
+			this->tree.remove(keys.back());
+			keys.pop_back();
 		}
 	}
 

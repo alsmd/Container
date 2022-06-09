@@ -1,5 +1,6 @@
 #pragma once
 #include "./utility.hpp"
+#include "./functional.hpp"
 namespace ft{
 
 enum Color{
@@ -29,6 +30,7 @@ class BinarySearchTree{
 
 	protected:
 		std::allocator<ft::pair<const Key, T> >* _alloc;
+		Compare _comp;
 	public:
 		size_t	size;
 		typedef ft::pair<const Key, T> value_type;
@@ -40,6 +42,7 @@ class BinarySearchTree{
 		//Functions
 		BinarySearchTree(std::allocator<ft::pair<const Key, T> >* alloc) : _alloc(alloc){
 			this->root = NULL;
+			this->size = 0;
 		}
 
 		~BinarySearchTree(){
@@ -95,6 +98,7 @@ class BinarySearchTree{
 			if (root == NULL)
 				root = &this->root;
 			if (*root == NULL){
+				this->size += 1;
 				*root = node;
 				return node;
 			}else
@@ -102,18 +106,20 @@ class BinarySearchTree{
 			while (true){
 				if (node->value->first == init->value->first)
 					return init;
-				else if (Compare(node->value->first, init->value->first)){//LEFT
+				else if (_comp(node->value->first, init->value->first)){//LEFT
 					if (init->left == NULL){
 						node->parent = init;
 						init->left = node;
+						this->size += 1;
 						break;
 					}else
 						init = init->left;
-				}else if (!Compare(node->value->first, init->value->first))//RIGHT
+				}else if (!_comp(node->value->first, init->value->first))//RIGHT
 				{
 					if (init->right == NULL){
 						node->parent = init;
 						init->right = node;
+						this->size += 1;
 						break ;
 					}else
 						init = init->right;
@@ -152,6 +158,37 @@ class BinarySearchTree{
 		}
 
 
+		void	connectFamily(Node<Key, T> *from, Node<Key, T> *to){
+			Node<Key, T> *fromParent = from->parent;
+			Node<Key, T> *fromLeft = from->left;
+			Node<Key, T> *fromRight = from->right;
+			if (fromParent){
+				if (this->getDirection(from) == Direction::Left)
+					fromParent->left = to;
+				else
+					fromParent->right = to;
+			}else
+				this->root = to;
+			if (fromLeft)
+				fromLeft->parent = to;
+			if (fromRight)
+				fromRight->parent = to;
+		}
+
+		void	swapPointers(Node<Key, T> *node1, Node<Key, T> *node2){
+			Node<Key, T> *parentHolder = node1->parent;
+			Node<Key, T> *leftHolder = node1->left;
+			Node<Key, T> *rightHolder = node1->right;
+			this->swap(node1->color, node2->color);
+			node1->parent = node2->parent == node1 ? NULL : node2->parent;
+			node1->left = node2->left == node1 ? NULL : node2->left;
+			node1->right = node2->right == node1 ? NULL : node2->right;
+			node2->parent = parentHolder == node2 ? NULL : parentHolder;
+			node2->left = leftHolder == node2 ? NULL : leftHolder;
+			node2->right = rightHolder == node2 ? NULL : rightHolder;
+		}
+
+		
 
 		/***
 		 * 
@@ -161,28 +198,16 @@ class BinarySearchTree{
 		 * 
 		*/
 		void	swapNode(Node<Key, T> *node, Node<Key, T> *sub){
-			if (!node)
-				return ;
-			if (sub){
-				sub->color = node->color;
-				sub->parent = node->parent;
-				if (node->left != sub && node->left){
-					sub->left = node->left;
-					node->left->parent = sub;
-				}
-				if (node->right != sub && node->right){
-					sub->right = node->right;
-					node->right->parent = sub;
-				}
-			}
-			if (node->parent){
-				if (node->parent->left == node){
-					node->parent->left = sub;
-				}else if (node->parent->right == node){
-					node->parent->right = sub;
-				}
-			}else
-				this->root = sub;
+			this->connectFamily(node, sub);
+			this->connectFamily(sub, node);
+			this->swapPointers(node, sub);
+		}
+
+		template <typename J>
+		void swap(J &n1, J &n2){
+			J holder = n1;
+			n1 = n2;
+			n2 = holder;
 		}
 		/***
 		 * 
@@ -226,6 +251,7 @@ class BinarySearchTree{
 					this->swapNode(node, node->right);
 			}
 			delete node;
+			this->size -= 1;
 		}
 
 
@@ -346,10 +372,12 @@ class RedBlackTree : public BinarySearchTree<Key, T>{
 	}
 	
 	void rotate(Node<Key, T> *node){
+		size_t i = this->size;
 		if (BinarySearchTree<Key, T>::getDirection(node) == Direction::Right)
 			this->leftRotation(node);
 		else
 			this->rightRotation(node);
+		this->size = i;
 	}
 
 	void reddish(Node<Key, T> *node){
@@ -506,35 +534,29 @@ class RedBlackTree : public BinarySearchTree<Key, T>{
 	*/
 	void	deleteNode(Node<Key, T> *node){
 		if (node->left == NULL && node->right == NULL){
-			if (node->color == Color::Black){
+			if (node->color == Color::Black)
 				this->repassBlack(node);
+			if (node->parent){
+				if (this->getDirection(node) == Direction::Left)
+					node->parent->left = NULL;
+				else
+					node->parent->right = NULL;
 			}
-			this->swapNode(node, NULL);
 			this->_alloc->destroy(node->value);
 			this->_alloc->deallocate(node->value, 1);
-			node->value = 0;
 			delete node;
+			this->size -= 1;
 		}
-		else if (node->left && node->right){
-			Node<Key, T> *higher_node = this->getHigherNode(node->left);
-			value_type *holder = node->value;
-			node->value = higher_node->value;
-			higher_node->value = holder;
-			deleteNode(higher_node);
-
+		else if (node->left && node->right){ // 2º tem 2 filhos
+			Node<Key, T> *higher_node = this->getHigherNode(node->left);//maior node da esquerda
+			this->swapNode(node, higher_node);
+			this->deleteNode(node);
 		}else if (node->left || node->right){// tem um filho
-			if (node->left){
-				value_type *holder = node->value;
-				node->value = node->left->value;
-				node->left->value = holder;
-				deleteNode(node->left);
-			}
-			else{
-				value_type *holder = node->value;
-				node->value = node->right->value;
-				node->right->value = holder;
-				deleteNode(node->right);
-			}
+			if (node->left)
+				this->swapNode(node, node->left);
+			else
+				this->swapNode(node, node->right);
+			this->deleteNode(node);
 		}
 	}
 };
