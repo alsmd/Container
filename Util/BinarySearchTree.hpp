@@ -158,34 +158,32 @@ class BinarySearchTree{
 		}
 
 
-		void	connectFamily(Node<Key, T> *from, Node<Key, T> *to){
-			Node<Key, T> *fromParent = from->parent;
-			Node<Key, T> *fromLeft = from->left;
-			Node<Key, T> *fromRight = from->right;
-			if (fromParent){
-				if (this->getDirection(from) == Direction::Left)
-					fromParent->left = to;
+		void	connectFamily(Node<Key, T> *node){
+			if (node->parent){
+				if (getDirection(node) == Direction::Right)
+					node->parent->right = node;
 				else
-					fromParent->right = to;
-			}else
-				this->root = to;
-			if (fromLeft)
-				fromLeft->parent = to;
-			if (fromRight)
-				fromRight->parent = to;
+					node->parent->left = node;
+			}
+			else
+				this->root = node;
+			if (node->left)
+				node->left->parent = node;
+			if (node->right)
+				node->right->parent = node;
 		}
 
-		void	swapPointers(Node<Key, T> *node1, Node<Key, T> *node2){
+		void	swapFamily(Node<Key, T> *node1, Node<Key, T> *node2){
 			Node<Key, T> *parentHolder = node1->parent;
 			Node<Key, T> *leftHolder = node1->left;
 			Node<Key, T> *rightHolder = node1->right;
 			this->swap(node1->color, node2->color);
-			node1->parent = node2->parent == node1 ? NULL : node2->parent;
-			node1->left = node2->left == node1 ? NULL : node2->left;
-			node1->right = node2->right == node1 ? NULL : node2->right;
-			node2->parent = parentHolder == node2 ? NULL : parentHolder;
-			node2->left = leftHolder == node2 ? NULL : leftHolder;
-			node2->right = rightHolder == node2 ? NULL : rightHolder;
+			node1->parent = node2->parent == node1 ? node2 : node2->parent;
+			node1->left = node2->left == node1 ? node2 : node2->left;
+			node1->right = node2->right == node1 ? node2 : node2->right;
+			node2->parent = parentHolder == node2 ? node1 : parentHolder;
+			node2->left = leftHolder == node2 ? node1 : leftHolder;
+			node2->right = rightHolder == node2 ? node1 : rightHolder;
 		}
 
 		
@@ -198,9 +196,9 @@ class BinarySearchTree{
 		 * 
 		*/
 		void	swapNode(Node<Key, T> *node, Node<Key, T> *sub){
-			this->connectFamily(node, sub);
-			this->connectFamily(sub, node);
-			this->swapPointers(node, sub);
+			this->swapFamily(node, sub);
+			this->connectFamily(sub);
+			this->connectFamily(node);
 		}
 
 		template <typename J>
@@ -541,7 +539,8 @@ class RedBlackTree : public BinarySearchTree<Key, T>{
 					node->parent->left = NULL;
 				else
 					node->parent->right = NULL;
-			}
+			}else
+				this->root = NULL;
 			this->_alloc->destroy(node->value);
 			this->_alloc->deallocate(node->value, 1);
 			delete node;

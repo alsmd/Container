@@ -5,24 +5,12 @@
 #include <sstream>
 #include <sys/time.h>
 
+
 int main(){
-   ft::map<int, int> list;
+   ft::map<std::string, int> list;
 
-
-   list[1] = 1;
-   list[2] = 2;
-   list[3] = 3;
-   list[4] = 4;
-   list[5] = 5;
-   list[6] = 6;
-   list[7] = 7;
-   auto i  = list.end();
-   i--;
-   list.erase(1);
-   list.erase(2);
-   list.erase(3);
-   list.erase(4);
-   list.erase(5);
-   list.erase(6);
-   std::cout << i->first << " " << i->second << "\n";
+   list["1"] = 1;
+   list["2"] = 1;
+   // list["pan"] = 1;
+   // list["ha"] = 1;
 }

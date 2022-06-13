@@ -51,6 +51,16 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 		this->clear();
 	}
 
+	map (const map& x) :
+		_alloc(x._alloc), tree(&_alloc){
+		this->operator=(x);
+	}
+
+	map& operator= (const map& x){
+		this->clear();
+		this->insert(x.begin(), x.end());
+		return (*this);
+	}
 	//Iterators
 
 	iterator begin(){
@@ -298,7 +308,7 @@ template< typename Key, typename T, typename Compare = ft::less<Key>, typename A
 	template <class InputIterator>
 	void insert (InputIterator first, InputIterator last){
 		while (first != last){
-			this->tree.root->insert(first->first) = first->second;
+			this->tree.insert(first->first) = first->second;
 			first++;
 		}
 	}
